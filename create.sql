@@ -1,29 +1,44 @@
+CREATE TABLE "Сети" (
+	"ид" serial NOT NULL,
+	"название" TEXT NOT NULL UNIQUE,
+	"сайт" TEXT UNIQUE,
+	PRIMARY KEY ("ид")
+);
+
+CREATE TABLE "Кинотеатры" (
+	"ид" serial NOT NULL,
+	"ид_сети" serial NOT NULL REFERENCES "Сети" ON DELETE CASCADE,
+	"название" TEXT NOT NULL,
+	"город" TEXT NOT NULL,
+	"адрес" TEXT NOT NULL,
+	PRIMARY KEY ("ид")
+);
+
+CREATE TABLE "Залы" (
+	"ид" serial NOT NULL,
+	"ид_кинотеатра" serial NOT NULL REFERENCES "Кинотеатры" ON DELETE CASCADE,
+	"номер_зала" serial NOT NULL CONSTRAINT csr_room_id CHECK ("номер_зала" > 0),
+	PRIMARY KEY ("ид")
+);
+
 CREATE TABLE "Места" (
 	"ид" serial NOT NULL,
-	"ид_зала" int NOT NULL,
+	"ид_зала" serial NOT NULL REFERENCES "Залы" ON DELETE CASCADE,
 	"ряд" int NOT NULL 
 		CONSTRAINT csr_row CHECK ("ряд" > 0),
 	"место" int NOT NULL 
 		CONSTRAINT csr_place CHECK ("место" > 0),
 	"стоимость" int NOT NULL 
 		CONSTRAINT csr_seat_price CHECK ("стоимость" > 0),
-	CONSTRAINT Места_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Жанры" (
 	"ид" serial NOT NULL,
 	"название" TEXT NOT NULL UNIQUE,
-	CONSTRAINT Жанры_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
-CREATE TABLE "Кинотеатры " (
-	"ид" serial NOT NULL,
-	"ид_сети" int NOT NULL,
-	"название" TEXT NOT NULL,
-	"город" TEXT NOT NULL,
-	"адрес" TEXT NOT NULL,
-	CONSTRAINT Кинотеатры _pk PRIMARY KEY ("ид")
-);
 
 CREATE TABLE "Люди" (
 	"ид" serial NOT NULL,
@@ -39,16 +54,6 @@ CREATE TABLE "Пользователи" (
 	"дата_регистрации" TIMESTAMP NOT NULL
 				CONSTRAINT csr_date_reg CHECK ("дата_регистрации" <= NOW()),
 	CONSTRAINT Пользователи_pk PRIMARY KEY ("ид")
-);
-
-CREATE TABLE "Медиа" (
-	"ид" serial NOT NULL,
-	"название" TEXT NOT NULL,
-	"ид_фильма" int NOT NULL,
-	"тип" TEXT NOT NULL,
-	"url" TEXT NOT NULL
-		CONSTRAINT csr_url CHECK ("url" SIMILAR TO '^(https?://|www\\.)[\.A-Za-z0-9\-]+\\.[a-zA-Z]{2,4}'),
-	CONSTRAINT Медиа_pk PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Фильмы" (
@@ -68,10 +73,21 @@ CREATE TABLE "Фильмы" (
 	CONSTRAINT Фильмы_pk PRIMARY KEY ("ид")
 );
 
+
+CREATE TABLE "Медиа" (
+	"ид" serial NOT NULL,
+	"название" TEXT NOT NULL,
+	"ид_фильма" serial NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
+	"тип" TEXT NOT NULL,
+	"url" TEXT NOT NULL
+		CONSTRAINT csr_url CHECK ("url" SIMILAR TO '^(https?://|www\\.)[\.A-Za-z0-9\-]+\\.[a-zA-Z]{2,4}'),
+	CONSTRAINT Медиа_pk PRIMARY KEY ("ид")
+);
+
 CREATE TABLE "Оценки" (
 	"ид" serial NOT NULL,
-	"ид_фильма" int NOT NULL,
-	"ид_пользователя" int NOT NULL,
+	"ид_фильма" serial NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
+	"ид_пользователя" serial NOT NULL REFERENCES "Пользователи" ON DELETE CASCADE,
 	"значение" int NOT NULL CONSTRAINT csr_rate CHECK ("значение" >= 1 AND "значение" <= 10), 
 	"комментарий" TEXT,
 	CONSTRAINT Оценки_pk PRIMARY KEY ("ид")
@@ -79,8 +95,8 @@ CREATE TABLE "Оценки" (
 
 CREATE TABLE "Награды" (
 	"ид" serial NOT NULL,
-	"ид_фильма" int NOT NULL,
-	"ид_человека" int NOT NULL,
+	"ид_фильма" serial NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
+	"ид_человека" serial NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
 	"Название" TEXT NOT NULL,
 	"Тип" TEXT NOT NULL,
 	CONSTRAINT Награды_pk PRIMARY KEY ("ид")
@@ -94,100 +110,54 @@ CREATE TABLE "Группы" (
 
 CREATE TABLE "Роли" (
 	"название" serial NOT NULL,
-	"ид_человека" int NOT NULL,
-	"ид_группы" int NOT NULL,
-	CONSTRAINT Роли_pk PRIMARY KEY ("название","ид_человека","ид_группы")
+	"ид_человека" serial NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
+	"ид_группы" serial NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
+	PRIMARY KEY ("название","ид_человека","ид_группы")
 );
 
-CREATE TABLE "Сети" (
-	"ид" serial NOT NULL,
-	"название" TEXT NOT NULL UNIQUE,
-	"сайт" TEXT UNIQUE,
-	CONSTRAINT Сети_pk PRIMARY KEY ("ид")
-);
 
 CREATE TABLE "Сеансы" (
 	"ид" serial NOT NULL,
-	"ид_фильма" int NOT NULL,
-	"ид_зала" int NOT NULL,
+	"ид_фильма" serial NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
+	"ид_зала" serial NOT NULL REFERENCES "Залы" ON DELETE CASCADE,
 	"дата_начала" TIMESTAMP NOT NULL,
 	"дата_конца" TIMESTAMP NOT NULL,
 	CONSTRAINT csr_session_date CHECK ("дата_начала" < "дата_конца"),
-	CONSTRAINT Сеансы_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
-CREATE TABLE "Залы" (
-	"ид" serial NOT NULL,
-	"ид_кинотеатра" int NOT NULL,
-	"номер_зала" int NOT NULL CONSTRAINT csr_room_id CHECK ("номер_зала" > 0),
-	CONSTRAINT Залы_pk PRIMARY KEY ("ид")
-);
 
 CREATE TABLE "Билеты" (
 	"ид" serial NOT NULL,
-	"ид_места" int NOT NULL REFERENCES "Места" ,
-	"ид_сеанса" int NOT NULL REFERENCES "Сеансы" ON DELETE CASCADE,
+	"ид_места" serial NOT NULL REFERENCES "Места" ON DELETE RESTRICT,
+	"ид_сеанса" serial NOT NULL REFERENCES "Сеансы" ON DELETE CASCADE,
 	"ид_пользователя" int REFERENCES "Пользователи" ON DELETE RESTRICT,
 	"стоимость" int NOT NULL CONSTRAINT csr_ticket_price CHECK ("стоимость" > 0),
 	"статус" int NOT NULL,
-	CONSTRAINT Билеты_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
+
 CREATE TABLE "Фильмы_Жанры" (
-	"ид_фильма" int NOT NULL REFERENCES "Фильмы",
-	"ид_жанра" int NOT NULL REFERENCES "Жанры",
+	"ид_фильма" serial NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
+	"ид_жанра" serial NOT NULL REFERENCES "Жанры" ON DELETE CASCADE,
 	PRIMARY KEY ("ид_фильма", "ид_жанра")
 );
 
 CREATE TABLE "Фильмы_Группы" (
-	"ид_фильма" int NOT NULL REFERENCES "Фильмы",
-	"ид_группы" int NOT NULL REFERENCES "Группы",
+	"ид_фильма" serial NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
+	"ид_группы" serial NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
 	PRIMARY KEY ("ид_фильма", "ид_группы")
 );
 
 CREATE TABLE "Люди_Группы" (
-	"ид_человека" int NOT NULL REFERENCES "Люди",
-	"ид_группы" int NOT NULL REFERENCES "Группы",
+	"ид_человека" serial NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
+	"ид_группы" serial NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
 	PRIMARY KEY ("ид_человека", "ид_группы")
 );
 
 CREATE TABLE "Награды_Люди" (
-	"ид_человека" int NOT NULL REFERENCES "Люди",
-	"ид_награды" int NOT NULL REFERENCES "Награды",
+	"ид_человека" serial NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
+	"ид_награды" serial NOT NULL REFERENCES "Награды" ON DELETE CASCADE,
 	PRIMARY KEY ("ид_человека", "ид_награды")
 );
-
-ALTER TABLE "Места" ADD CONSTRAINT "Места_fk0" FOREIGN KEY ("ид_зала") REFERENCES "Залы"("ид");
-
-ALTER TABLE "Кинотеатры " ADD CONSTRAINT "Кинотеатры _fk0" FOREIGN KEY ("ид_сети") REFERENCES "Сети"("ид");
-
-ALTER TABLE "Медиа" ADD CONSTRAINT "Медиа_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
-
-
-ALTER TABLE "Оценки" ADD CONSTRAINT "Оценки_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
-ALTER TABLE "Оценки" ADD CONSTRAINT "Оценки_fk1" FOREIGN KEY ("ид_пользователя") REFERENCES "Пользователи"("ид");
-
-ALTER TABLE "Награды" ADD CONSTRAINT "Награды_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
-ALTER TABLE "Награды" ADD CONSTRAINT "Награды_fk1" FOREIGN KEY ("ид_человека") REFERENCES "Люди"("ид");
-
-
-ALTER TABLE "Роли" ADD CONSTRAINT "Роли_fk0" FOREIGN KEY ("ид_человека") REFERENCES "Люди"("ид");
-ALTER TABLE "Роли" ADD CONSTRAINT "Роли_fk1" FOREIGN KEY ("ид_группы") REFERENCES "Группы"("ид");
-
-
-ALTER TABLE "Сеансы" ADD CONSTRAINT "Сеансы_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
-ALTER TABLE "Сеансы" ADD CONSTRAINT "Сеансы_fk1" FOREIGN KEY ("ид_зала") REFERENCES "Залы"("ид");
-
-ALTER TABLE "Залы" ADD CONSTRAINT "Залы_fk0" FOREIGN KEY ("ид_кинотеатра") REFERENCES "Кинотеатры "("ид");
-
-ALTER TABLE "Фильмы_Жанры" ADD CONSTRAINT "Фильмы_Жанры_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
-ALTER TABLE "Фильмы_Жанры" ADD CONSTRAINT "Фильмы_Жанры_fk1" FOREIGN KEY ("ид_жанра") REFERENCES "Жанры"("ид");
-
-ALTER TABLE "Фильмы_Группы" ADD CONSTRAINT "Фильмы_Группы_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
-ALTER TABLE "Фильмы_Группы" ADD CONSTRAINT "Фильмы_Группы_fk1" FOREIGN KEY ("ид_группы") REFERENCES "Группы"("ид");
-
-ALTER TABLE "Люди_Группы" ADD CONSTRAINT "Люди_Группы_fk0" FOREIGN KEY ("ид_человека") REFERENCES "Люди"("ид");
-ALTER TABLE "Люди_Группы" ADD CONSTRAINT "Люди_Группы_fk1" FOREIGN KEY ("ид_группы") REFERENCES "Группы"("ид");
-
-ALTER TABLE "Награды_Люди" ADD CONSTRAINT "Награды_Люди_fk0" FOREIGN KEY ("ид_человека") REFERENCES "Люди"("ид");
-ALTER TABLE "Награды_Люди" ADD CONSTRAINT "Награды_Люди_fk1" FOREIGN KEY ("ид_награды") REFERENCES "Награды"("ид");
