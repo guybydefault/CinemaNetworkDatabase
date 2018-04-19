@@ -58,12 +58,13 @@ CREATE TABLE "Фильмы" (
 	"дата_конца_съемок" TIMESTAMP,
 	"дата_премьеры" TIMESTAMP,
 	"продолжительность" int NOT NULL 
-		CONSTRAINT csr_duration CHECK ("продолжительность" > ),
+		CONSTRAINT csr_duration CHECK ("продолжительность" > 0),
 	"бюджет" int,
 		CONSTRAINT csr_budget CHECK ("бюджет" > 0),
 	"возрастной_рейтинг" varchar(4) NOT NULL,
 	"слоган" TEXT,
-	CONSTRAINT csr_movie_date CHECK ("дата_конца_съемок" > "дата_начала_съемок" AND "дата_конца_съемок" < "дата_премьеры"),
+	CONSTRAINT csr_movie_start_end_range CHECK ("дата_конца_съемок" > "дата_начала_съемок"),
+	CONSTRAINT csr_movie_release_end CHECK ("дата_конца_съемок" < "дата_премьеры"),
 	CONSTRAINT Фильмы_pk PRIMARY KEY ("ид")
 );
 
@@ -124,40 +125,41 @@ CREATE TABLE "Залы" (
 
 CREATE TABLE "Билеты" (
 	"ид" serial NOT NULL,
-	"ид_места" int NOT NULL,
-	"ид_сеанса" int NOT NULL,
-	"ид_пользователя" int,
+	"ид_места" int NOT NULL REFERENCES "Места" ,
+	"ид_сеанса" int NOT NULL REFERENCES "Сеансы" ON DELETE CASCADE,
+	"ид_пользователя" int REFERENCES "Пользователи" ON DELETE RESTRICT,
 	"стоимость" int NOT NULL CONSTRAINT csr_ticket_price CHECK ("стоимость" > 0),
 	"статус" int NOT NULL,
 	CONSTRAINT Билеты_pk PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Фильмы_Жанры" (
-	"ид_фильма" int NOT NULL,
-	"ид_жанра" int NOT NULL
+	"ид_фильма" int NOT NULL REFERENCES "Фильмы",
+	"ид_жанра" int NOT NULL REFERENCES "Жанры",
+	PRIMARY KEY ("ид_фильма", "ид_жанра")
 );
 
 CREATE TABLE "Фильмы_Группы" (
-	"ид_фильма" int NOT NULL,
-	"ид_группы" int NOT NULL
+	"ид_фильма" int NOT NULL REFERENCES "Фильмы",
+	"ид_группы" int NOT NULL REFERENCES "Группы",
+	PRIMARY KEY ("ид_фильма", "ид_группы")
 );
 
 CREATE TABLE "Люди_Группы" (
-	"ид_человека" int NOT NULL,
-	"ид_группы" int NOT NULL
+	"ид_человека" int NOT NULL REFERENCES "Люди",
+	"ид_группы" int NOT NULL REFERENCES "Группы",
+	PRIMARY KEY ("ид_человека", "ид_группы")
 );
 
 CREATE TABLE "Награды_Люди" (
-	"ид_человека" int NOT NULL,
-	"ид_награды" int NOT NULL
+	"ид_человека" int NOT NULL REFERENCES "Люди",
+	"ид_награды" int NOT NULL REFERENCES "Награды",
+	PRIMARY KEY ("ид_человека", "ид_награды")
 );
 
 ALTER TABLE "Места" ADD CONSTRAINT "Места_fk0" FOREIGN KEY ("ид_зала") REFERENCES "Залы"("ид");
 
-
 ALTER TABLE "Кинотеатры " ADD CONSTRAINT "Кинотеатры _fk0" FOREIGN KEY ("ид_сети") REFERENCES "Сети"("ид");
-
-
 
 ALTER TABLE "Медиа" ADD CONSTRAINT "Медиа_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
 
@@ -177,10 +179,6 @@ ALTER TABLE "Сеансы" ADD CONSTRAINT "Сеансы_fk0" FOREIGN KEY ("ид_
 ALTER TABLE "Сеансы" ADD CONSTRAINT "Сеансы_fk1" FOREIGN KEY ("ид_зала") REFERENCES "Залы"("ид");
 
 ALTER TABLE "Залы" ADD CONSTRAINT "Залы_fk0" FOREIGN KEY ("ид_кинотеатра") REFERENCES "Кинотеатры "("ид");
-
-ALTER TABLE "Билеты" ADD CONSTRAINT "Билеты_fk0" FOREIGN KEY ("ид_места") REFERENCES "Места"("ид");
-ALTER TABLE "Билеты" ADD CONSTRAINT "Билеты_fk1" FOREIGN KEY ("ид_сеанса") REFERENCES "Сеансы"("ид");
-ALTER TABLE "Билеты" ADD CONSTRAINT "Билеты_fk2" FOREIGN KEY ("ид_пользователя") REFERENCES "Пользователи"("ид");
 
 ALTER TABLE "Фильмы_Жанры" ADD CONSTRAINT "Фильмы_Жанры_fk0" FOREIGN KEY ("ид_фильма") REFERENCES "Фильмы"("ид");
 ALTER TABLE "Фильмы_Жанры" ADD CONSTRAINT "Фильмы_Жанры_fk1" FOREIGN KEY ("ид_жанра") REFERENCES "Жанры"("ид");
