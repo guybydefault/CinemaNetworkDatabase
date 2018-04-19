@@ -1,0 +1,17 @@
+drop table Награды_Люди;
+drop table Фильмы_Группы;
+drop table Люди_Группы;
+drop table Фильмы_Жанры;
+drop table Медиа;
+drop table Люди;
+drop table Группы;
+drop table Награды;
+drop table Оценки;
+drop table Билеты;
+drop table Пользователи;
+drop table Сеансы;
+drop table Места;
+drop table Залы;
+drop table Кинотеатры;
+drop table Сети;
+drop table Фильмы;
