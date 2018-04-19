@@ -1,7 +1,3 @@
-<<<<<<< HEAD
-sdfghjkl;'
-[;plokjhgfdsdfghjp[\-poijhgfcsdfghjpok
-=======
 CREATE TABLE "Места" (
 	"ид" serial NOT NULL,
 	"ид_зала" int NOT NULL,
@@ -197,5 +193,3 @@ ALTER TABLE "Люди_Группы" ADD CONSTRAINT "Люди_Группы_fk1" F
 
 ALTER TABLE "Награды_Люди" ADD CONSTRAINT "Награды_Люди_fk0" FOREIGN KEY ("ид_человека") REFERENCES "Люди"("ид");
 ALTER TABLE "Награды_Люди" ADD CONSTRAINT "Награды_Люди_fk1" FOREIGN KEY ("ид_награды") REFERENCES "Награды"("ид");
-
->>>>>>> 65d13aa3bde3c2a97d0d1904fb3f5a686c058c2c
