@@ -43,7 +43,7 @@ CREATE TABLE "Жанры" (
 CREATE TABLE "Люди" (
 	"ид" SERIAL NOT NULL,
 	"фио" TEXT NOT NULL,
-	CONSTRAINT Люди_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Пользователи" (
@@ -53,7 +53,7 @@ CREATE TABLE "Пользователи" (
 	"фио" TEXT NOT NULL,
 	"дата_регистрации" TIMESTAMP NOT NULL
 				CONSTRAINT csr_date_reg CHECK ("дата_регистрации" <= NOW()),
-	CONSTRAINT Пользователи_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Фильмы" (
@@ -70,7 +70,7 @@ CREATE TABLE "Фильмы" (
 	"слоган" TEXT,
 	CONSTRAINT csr_movie_start_end_range CHECK ("дата_конца_съемок" > "дата_начала_съемок"),
 	CONSTRAINT csr_movie_release_end CHECK ("дата_конца_съемок" < "дата_премьеры"),
-	CONSTRAINT Фильмы_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 
@@ -81,7 +81,7 @@ CREATE TABLE "Медиа" (
 	"тип" TEXT NOT NULL,
 	"url" TEXT NOT NULL
 		CONSTRAINT csr_url CHECK ("url" SIMILAR TO '^(https?://|www\\.)[\.A-Za-z0-9\-]+\\.[a-zA-Z]{2,4}'),
-	CONSTRAINT Медиа_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Оценки" (
@@ -90,7 +90,7 @@ CREATE TABLE "Оценки" (
 	"ид_пользователя" SERIAL NOT NULL REFERENCES "Пользователи" ON DELETE CASCADE,
 	"значение" int NOT NULL CONSTRAINT csr_rate CHECK ("значение" >= 1 AND "значение" <= 10), 
 	"комментарий" TEXT,
-	CONSTRAINT Оценки_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Награды" (
@@ -99,13 +99,13 @@ CREATE TABLE "Награды" (
 	"ид_человека" SERIAL NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
 	"Название" TEXT NOT NULL,
 	"Тип" TEXT NOT NULL,
-	CONSTRAINT Награды_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Группы" (
 	"ид" SERIAL NOT NULL,
 	"название" TEXT NOT NULL,
-	CONSTRAINT Группы_pk PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Роли" (
