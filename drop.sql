@@ -1,13 +1,11 @@
 drop table Роли;
-drop table Награды_Люди;
 drop table Фильмы_Группы;
 drop table Люди_Группы;
 drop table Фильмы_Жанры;
-drop table Жанры;
 drop table Медиа;
+drop table Награды;
 drop table Люди;
 drop table Группы;
-drop table Награды;
 drop table Оценки;
 drop table Билеты;
 drop table Пользователи;
