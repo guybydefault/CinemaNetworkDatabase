@@ -1,7 +1,7 @@
 CREATE TABLE "Сети" (
 	"ид" SERIAL NOT NULL,
 	"название" TEXT NOT NULL UNIQUE,
-	"сайт" TEXT UNIQUE,
+	"url" TEXT UNIQUE,
 	PRIMARY KEY ("ид")
 );
 
@@ -66,7 +66,7 @@ CREATE TABLE "Фильмы" (
 		CONSTRAINT csr_duration CHECK ("продолжительность" > 0),
 	"бюджет" int,
 		CONSTRAINT csr_budget CHECK ("бюджет" > 0),
-	"возрастной_рейтинг" VARCHAR(4) NOT NULL,
+	"возрастной_рейтинг" VARCHAR(4) NOT NULL CHECK("возрастной_рейтинг" in('G','PG','PG-13','R','NC-17')),
 	"слоган" TEXT,
 	CONSTRAINT csr_movie_start_end_range CHECK ("дата_конца_съемок" > "дата_начала_съемок"),
 	CONSTRAINT csr_movie_release_end CHECK ("дата_конца_съемок" < "дата_премьеры"),
@@ -79,8 +79,7 @@ CREATE TABLE "Медиа" (
 	"название" TEXT NOT NULL,
 	"ид_фильма" INTEGER NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
 	"тип" TEXT NOT NULL,
-	"url" TEXT NOT NULL
-		CONSTRAINT csr_url CHECK ("url" SIMILAR TO '^(https?://|www\\.)[\.A-Za-z0-9\-]+\\.[a-zA-Z]{2,4}'),
+	"url" TEXT NOT NULL,
 	PRIMARY KEY ("ид")
 );
 
@@ -109,7 +108,7 @@ CREATE TABLE "Группы" (
 );
 
 CREATE TABLE "Роли" (
-	"название" SERIAL NOT NULL,
+	"название" TEXT NOT NULL,
 	"ид_человека" INTEGER NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
 	"ид_группы" INTEGER NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
 	PRIMARY KEY ("название","ид_человека","ид_группы")
