@@ -84,12 +84,11 @@ CREATE TABLE "Медиа" (
 );
 
 CREATE TABLE "Оценки" (
-	"ид" SERIAL NOT NULL,
 	"ид_фильма" INTEGER NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
 	"ид_пользователя" INTEGER NOT NULL REFERENCES "Пользователи" ON DELETE CASCADE,
 	"значение" int NOT NULL CONSTRAINT csr_rate CHECK ("значение" >= 1 AND "значение" <= 10), 
 	"комментарий" TEXT,
-	PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид_фильма", "ид_пользователя")
 );
 
 CREATE TABLE "Награды" (
