@@ -1,5 +1,4 @@
 drop table Фильмы_Группы;
-drop table Люди_Группы;
 drop table Фильмы_Жанры;
 drop table Награды_Люди;
 drop table Билеты;
