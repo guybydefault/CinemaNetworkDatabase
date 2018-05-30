@@ -147,12 +147,6 @@ CREATE TABLE "Фильмы_Группы" (
 	PRIMARY KEY ("ид_фильма", "ид_группы")
 );
 
-CREATE TABLE "Люди_Группы" (
-	"ид_человека" INTEGER NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
-	"ид_группы" INTEGER NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
-	PRIMARY KEY ("ид_человека", "ид_группы")
-);
-
 CREATE TABLE "Награды_Люди" (
 	"ид_человека" INTEGER NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
 	"ид_награды" INTEGER NOT NULL REFERENCES "Награды" ON DELETE CASCADE,
