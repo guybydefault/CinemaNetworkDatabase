@@ -127,13 +127,12 @@ CREATE TABLE "Сеансы" (
 
 
 CREATE TABLE "Билеты" (
-	"ид" SERIAL NOT NULL,
 	"ид_места" INTEGER NOT NULL REFERENCES "Места" ON DELETE RESTRICT,
 	"ид_сеанса" INTEGER NOT NULL REFERENCES "Сеансы" ON DELETE CASCADE,
 	"ид_пользователя" int REFERENCES "Пользователи" ON DELETE RESTRICT,
 	"стоимость" int NOT NULL CONSTRAINT csr_ticket_price CHECK ("стоимость" > 0),
 	"статус" int NOT NULL,
-	PRIMARY KEY ("ид")
+	PRIMARY KEY ("ид_места", "ид_сеанса")
 );
 
 
