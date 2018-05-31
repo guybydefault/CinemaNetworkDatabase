@@ -16,5 +16,3 @@ drop table Места;
 drop table Залы;
 drop table Кинотеатры;
 drop table Сети;
-
-
