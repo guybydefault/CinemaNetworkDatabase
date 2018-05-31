@@ -133,12 +133,63 @@ CREATE OR REPLACE FUNCTION insert_genres(count int)
 RETURNS VOID AS $$
 BEGIN
         FOR i in 1 .. count LOOP
-                insert into Люди(фио)
+                insert into Жанры(название)
                  values (random_string(20));
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION insert_films(count int)
+RETURNS VOID AS $$
+DECLARE
+        film_date timestamp;
+BEGIN
+        film_date = random_date();
+        FOR i in 1 .. count LOOP
+                insert into Фильмы(название, дата_начала_съемок, дата_конца_съемок,дата_премьеры,продолжительность,бюджет,возрастной_рейтинг) 
+        values(random_string(20),film_date,(film_date + ('12 months')::interval)::timestamp,
+                (film_date + ('13 months')::interval)::timestamp,'121','11000','G');
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_sessions()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        room record;
+        film_time timestamp;
+BEGIN
+        FOR room IN (SELECT ид from Залы)
+        LOOP
+                FOR film IN (SELECT * from Фильмы)
+                LOOP
+                        film_time = (film.дата_премьеры + ('1 months')::interval)::timestamp;
+                        insert into Сеансы(ид_фильма, ид_зала, дата_начала, дата_конца) 
+                                values(film.ид, room.ид, 
+                                        film_time, (film_time + ('1 hour')::interval)::timestamp);
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_responses()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        user record;
+        film_time timestamp;
+BEGIN
+        FOR user IN (SELECT ид from Пользователи)
+        LOOP
+                FOR film IN (SELECT * from Фильмы)
+                LOOP
+                        insert into Отзывы(ид_фильма,ид_пользователя, значение, комментарий) 
+        values(currval('Фильмы_ид_seq'), currval('Пользователи_ид_seq'), 5,'Хороший фильм');
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION insert_random_database(count int)
 RETURNS VOID AS $$
@@ -150,6 +201,10 @@ BEGIN
         PERFORM insert_users(count*2);
         PERFORM insert_people(count);
         PERFORM insert_genres(count);
+        PERFORM insert_films(count/4);
+        PERFORM insert_sessions();
+        PERFORM insert_responses();
+        PERFORM inset_genres_to_filmes();
 END;
 $$ LANGUAGE plpgsql;
 
