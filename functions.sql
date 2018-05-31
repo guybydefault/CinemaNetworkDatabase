@@ -177,15 +177,106 @@ CREATE OR REPLACE FUNCTION insert_responses()
 RETURNS VOID AS $$
 DECLARE
         film record;
-        user record;
-        film_time timestamp;
+        users record;
 BEGIN
-        FOR user IN (SELECT ид from Пользователи)
+        FOR users IN (SELECT ид from Пользователи)
         LOOP
-                FOR film IN (SELECT * from Фильмы)
+                FOR film IN (SELECT ид from Фильмы)
                 LOOP
-                        insert into Отзывы(ид_фильма,ид_пользователя, значение, комментарий) 
-        values(currval('Фильмы_ид_seq'), currval('Пользователи_ид_seq'), 5,'Хороший фильм');
+                        insert into Оценки(ид_фильма,ид_пользователя, значение, комментарий) 
+        values(film.ид,users.ид, 5, random_string(5));
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_genres_to_films()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        genres record;
+BEGIN
+        FOR genres IN (SELECT ид from Жанры)
+        LOOP
+                FOR film IN (SELECT ид from Фильмы)
+                LOOP
+                        insert into Фильмы_Жанры 
+                                values(film.ид, genres.ид);
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_groups(count int)
+RETURNS VOID AS $$
+BEGIN
+        FOR i in 1 .. count LOOP
+                insert into Группы(название) values(random_string(10));
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_groups_to_films()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        groups record;
+BEGIN
+        FOR groups IN (SELECT ид from Группы)
+        LOOP
+                FOR film IN (SELECT ид from Фильмы)
+                LOOP
+                        insert into Фильмы_Группы 
+                                values(film.ид,groups.ид);
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION insert_media()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+BEGIN
+        FOR film IN (SELECT ид from Фильмы)
+        LOOP
+                insert into Медиа(название, ид_фильма, тип, url) 
+                        values(random_string(20),
+                         film.ид, random_string(5), random_string(30));
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_roles()
+RETURNS VOID AS $$
+DECLARE
+        people record;
+        group record;
+BEGIN
+        FOR people IN (SELECT ид from Люди)
+        LOOP
+                FOR group IN (SELECT ид from Группы)
+                LOOP
+                        insert into Роли(название,ид_человека,ид_группы) 
+                                values(random_string(10),people.ид, group.ид);
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_peoples_to_groups()
+RETURNS VOID AS $$
+DECLARE
+        people record;
+        groups record;
+BEGIN
+        FOR groups IN (SELECT ид from Группы)
+        LOOP
+                FOR people IN (SELECT ид from Люди)
+                LOOP
+                        insert into Люди_Группы 
+                                values(people.ид,groups.ид);
                 END LOOP;
         END LOOP;
 END;
@@ -204,7 +295,11 @@ BEGIN
         PERFORM insert_films(count/4);
         PERFORM insert_sessions();
         PERFORM insert_responses();
-        PERFORM inset_genres_to_filmes();
+        PERFORM insert_genres_to_films();
+        PERFORM insert_groups_to_films();
+        PERFORM insert_media();
+        PERFORM insert_roles();
+        PERFORM insert_people_to_groups();
 END;
 $$ LANGUAGE plpgsql;
 

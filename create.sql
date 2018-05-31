@@ -84,11 +84,12 @@ CREATE TABLE "Медиа" (
 );
 
 CREATE TABLE "Оценки" (
+	"ид" SERIAL NOT NULL,
 	"ид_фильма" INTEGER NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
 	"ид_пользователя" INTEGER NOT NULL REFERENCES "Пользователи" ON DELETE CASCADE,
 	"значение" int NOT NULL CONSTRAINT csr_rate CHECK ("значение" >= 1 AND "значение" <= 10), 
 	"комментарий" TEXT,
-	PRIMARY KEY ("ид_фильма", "ид_пользователя")
+	PRIMARY KEY ("ид")
 );
 
 CREATE TABLE "Награды" (
@@ -126,12 +127,13 @@ CREATE TABLE "Сеансы" (
 
 
 CREATE TABLE "Билеты" (
+	"ид" SERIAL NOT NULL,
 	"ид_места" INTEGER NOT NULL REFERENCES "Места" ON DELETE RESTRICT,
 	"ид_сеанса" INTEGER NOT NULL REFERENCES "Сеансы" ON DELETE CASCADE,
 	"ид_пользователя" int REFERENCES "Пользователи" ON DELETE RESTRICT,
 	"стоимость" int NOT NULL CONSTRAINT csr_ticket_price CHECK ("стоимость" > 0),
 	"статус" int NOT NULL,
-	PRIMARY KEY ("ид_места", "ид_сеанса")
+	PRIMARY KEY ("ид")
 );
 
 
@@ -145,6 +147,12 @@ CREATE TABLE "Фильмы_Группы" (
 	"ид_фильма" INTEGER NOT NULL REFERENCES "Фильмы" ON DELETE CASCADE,
 	"ид_группы" INTEGER NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
 	PRIMARY KEY ("ид_фильма", "ид_группы")
+);
+
+CREATE TABLE "Люди_Группы" (
+	"ид_человека" INTEGER NOT NULL REFERENCES "Люди" ON DELETE CASCADE,
+	"ид_группы" INTEGER NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
+	PRIMARY KEY ("ид_человека", "ид_группы")
 );
 
 CREATE TABLE "Награды_Люди" (
