@@ -1,13 +1,13 @@
-Create or replace function random_string(length integer) returns text as
+CREATE OR REPLACE FUNCTION random_string(length integer) returns text as
 $$
 declare
   chars text[] := '{а,б,в,г,д,е,ё,ж,з,и,й,к,л,м,н,о,п,р,с,т,у,ф,х,ц,ч,ш,щ,ъ,ы,ь,э,ю,я}';
   result text := '';
   i integer := 0;
-begin
-  if length < 1 then
+BEGIN
+  if length < 1 THEN
     raise exception 'Given length cannot be less than 1';
-  end if;
+  END if;
   for i in 1..length loop
     result := result || chars[1+random()*(array_length(chars, 1)-1)];
   end loop;
@@ -15,7 +15,18 @@ begin
 end;
 $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION create_places_for_cinema_room(room_id int, rows_count int, column_count int, base_prise int)
+CREATE OR REPLACE FUNCTION random_date() returns timestamp as
+$$
+declare 
+        result timestamp;
+BEGIN
+        result = timestamp '1950-01-10 20:00:00' +
+        random() * (now() - '1950-01-10 20:00:00');      
+        return result;
+end;
+$$ language plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_places_for_cinema_room(room_id int, rows_count int, column_count int, base_prise int)
 RETURNS VOID AS $$
 BEGIN
         FOR i IN 1 .. rows_count LOOP
@@ -27,7 +38,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION create_tickets_for_session(session_id int)
+CREATE OR REPLACE FUNCTION insert_tickets_for_session(session_id int)
 RETURNS VOID AS $$
 DECLARE
         room_id int;
@@ -42,7 +53,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION create_cinema_circuit(count int)
+CREATE OR REPLACE FUNCTION insert_cinema_circuit(count int)
 RETURNS VOID AS $$
 BEGIN
         FOR i in 1 .. count LOOP
@@ -52,7 +63,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION create_cinemas(count int)
+CREATE OR REPLACE FUNCTION insert_cinemas(count int)
 RETURNS VOID AS $$
 DECLARE
         circuit record;
@@ -68,7 +79,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION create_rooms(count int)
+CREATE OR REPLACE FUNCTION insert_rooms(count int)
 RETURNS VOID AS $$
 DECLARE
         cinema record;
@@ -83,15 +94,47 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION create_places()
+CREATE OR REPLACE FUNCTION insert_places()
 RETURNS VOID AS $$
 DECLARE
         cinema_room record;
 BEGIN
         FOR cinema_room IN (SELECT ид from Залы)
         LOOP
-                PERFORM create_places_for_cinema_room
+                PERFORM insert_places_for_cinema_room
                 (cinema_room.ид,(random()*10+ 1)::int,(random()*20)::int+ 1,(random()*500)::int + 1);
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION insert_users(count int)
+RETURNS VOID AS $$
+BEGIN
+        FOR i in 1 .. count LOOP
+                insert into Пользователи(логин, пароль, фио, дата_регистрации)
+                 values (random_string(10), random_string(10),random_string(20),random_date());
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION insert_people(count int)
+RETURNS VOID AS $$
+BEGIN
+        FOR i in 1 .. count LOOP
+                insert into Люди(фио)
+                 values (random_string(20));
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION insert_genres(count int)
+RETURNS VOID AS $$
+BEGIN
+        FOR i in 1 .. count LOOP
+                insert into Люди(фио)
+                 values (random_string(20));
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -100,9 +143,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION insert_random_database(count int)
 RETURNS VOID AS $$
 BEGIN
-        PERFORM create_cinema_circuit(count / 100);
-        PERFORM create_cinemas(count / 50);
-        PERFORM create_rooms(count / 100);
-        PERFORM create_places();
+        PERFORM insert_cinema_circuit(count / 100);
+        PERFORM insert_cinemas(count / 50);
+        PERFORM insert_rooms(count / 100);
+        PERFORM insert_places();
+        PERFORM insert_users(count*2);
+        PERFORM insert_people(count);
+        PERFORM insert_genres(count);
 END;
 $$ LANGUAGE plpgsql;
+
+
