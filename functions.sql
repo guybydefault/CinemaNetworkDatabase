@@ -252,14 +252,14 @@ CREATE OR REPLACE FUNCTION insert_roles()
 RETURNS VOID AS $$
 DECLARE
         people record;
-        group record;
+        groupr record;
 BEGIN
         FOR people IN (SELECT ид from Люди)
         LOOP
-                FOR group IN (SELECT ид from Группы)
+                FOR groupr IN (SELECT ид from Группы)
                 LOOP
                         insert into Роли(название,ид_человека,ид_группы) 
-                                values(random_string(10),people.ид, group.ид);
+                                values(random_string(10),people.ид, groupr.ид);
                 END LOOP;
         END LOOP;
 END;
