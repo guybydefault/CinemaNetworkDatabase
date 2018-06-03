@@ -1,7 +1,7 @@
 CREATE TABLE "Сети" (
 	"ид" SERIAL NOT NULL,
 	"название" TEXT NOT NULL UNIQUE,
-	"url" TEXT UNIQUE,
+	"сайт" TEXT UNIQUE,
 	PRIMARY KEY ("ид")
 );
 

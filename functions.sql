@@ -26,10 +26,35 @@ BEGIN
 end;
 $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION insert_places_for_cinema_room(room_id int, rows_count int, column_count int, base_prise int)
+
+CREATE OR REPLACE FUNCTION сгенерировать_сети(count int)
+RETURNS VOID AS $$
+DECLARE
+	startId int = 0;
+	currId int;
+BEGIN
+	    SELECT MAX(ид) + 1 INTO startId FROM Сети;
+	    IF startId IS NULL THEN
+	    	RAISE NOTICE 'null';
+	    	startId = 0;
+	    ELSE 
+	    	startId = startId + 1;
+	    	RAISE NOTICE 'value %', startId;
+	    END IF;
+		
+        WHILE currId <> startId + count LOOP
+        	RAISE NOTICE 'hey';
+        	INSERT INTO Сети(ид, название, сайт) VALUES (currId, 'Сеть ' || currId, 'мираж.ру');
+        	currId = currId + 1;
+        END LOOP;
+END; 
+$$ 
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_кинотеатры(число_на_сеть int)
 RETURNS VOID AS $$
 BEGIN
-        FOR i IN 1 .. rows_count LOOP
+        FOR i IN 1 .. SELECT * FROM "Сети" LOOP
                 FOR j IN 1 .. column_count LOOP
                         INSERT INTO Места(ид_зала, ряд, место, стоимость)
                          values(room_id, i, j, base_prise);
