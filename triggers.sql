@@ -18,7 +18,6 @@ $сеансы_до_премьеры_запрещены$  LANGUAGE plpgsql;
 CREATE TRIGGER "сеансы_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Сеансы" 
 FOR EACH ROW EXECUTE PROCEDURE сеансы_до_премьеры_запрещены();
 
-# todo дата_Награды > конец съемок
 CREATE OR REPLACE FUNCTION награды_до_премьеры_запрещены() RETURNS trigger AS $награды_до_премьеры_запрещены$ 
 DECLARE 
 	премьера timestamp;
