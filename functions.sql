@@ -15,16 +15,22 @@ BEGIN
 end;
 $$ language plpgsql;
 
-CREATE OR REPLACE FUNCTION random_date() returns timestamp as
-$$
-declare 
+CREATE OR REPLACE FUNCTION random_film_date() 
+RETURNS TIMESTAMP AS $$
+DECLARE 
         result timestamp;
 BEGIN
-        result = timestamp '1950-01-10 20:00:00' +
-        random() * (now() - '1950-01-10 20:00:00');      
+        result = timestamp '1950-01-10 20:00:00' + random() * interval '68 years';      
         return result;
-end;
-$$ language plpgsql;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION random_film_interval() 
+RETURNS TIMESTAMP AS $$
+BEGIN
+        return random() * interval '2 months';
+END;
+$$ LANGUAGE plpgsql;
 
 
 CREATE OR REPLACE FUNCTION сгенерировать_сети(count int)
@@ -35,16 +41,13 @@ DECLARE
 BEGIN
 	    SELECT MAX(ид) + 1 INTO startId FROM Сети;
 	    IF startId IS NULL THEN
-	    	RAISE NOTICE 'null';
 	    	startId = 0;
 	    ELSE 
 	    	startId = startId + 1;
-	    	RAISE NOTICE 'value %', startId;
 	    END IF;
-		
+		currId = startId;
         WHILE currId <> startId + count LOOP
-        	RAISE NOTICE 'hey';
-        	INSERT INTO Сети(ид, название, сайт) VALUES (currId, 'Сеть ' || currId, 'мираж.ру');
+        	INSERT INTO Сети(ид, название, сайт) VALUES (currId, 'Сеть ' || currId, 'мираж' || currId || '.ру');
         	currId = currId + 1;
         END LOOP;
 END; 
@@ -53,15 +56,53 @@ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION сгенерировать_кинотеатры(число_на_сеть int)
 RETURNS VOID AS $$
+DECLARE
+	currId int = 0;
+	row Сети%ROWTYPE;
 BEGIN
-        FOR i IN 1 .. SELECT * FROM "Сети" LOOP
-                FOR j IN 1 .. column_count LOOP
-                        INSERT INTO Места(ид_зала, ряд, место, стоимость)
-                         values(room_id, i, j, base_prise);
+	    SELECT MAX(ид) + 1 INTO currId FROM Кинотеатры;
+	    IF currId IS NULL THEN
+	    	currId = 0;
+	    ELSE 
+	    	currId = currId + 1;
+	    END IF;
+		
+        FOR row IN SELECT * FROM Сети LOOP
+                FOR j IN 1 .. число_на_сеть LOOP
+                        INSERT INTO Кинотеатры(ид, ид_сети, название, город, адрес) VALUES (currId, row.ид, 'Кинотеатр ' || currId, 'СПб', 'Чкаловская д. ' || currId);
+                        currId = currId + 1;
                 END LOOP;
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_фильмы(число int)
+RETURNS VOID AS $$
+DECLARE
+	currId int = 0;
+	row Сети%ROWTYPE;
+	start timestamp = random_film_date();
+	end timestamp;
+	release timestamp;
+BEGIN
+		end = start + random_film_interval();
+		release = end + random_film_interval();
+	    SELECT MAX(ид) + 1 INTO currId FROM Фильмы;
+	    IF currId IS NULL THEN
+	    	currId = 0;
+	    ELSE 
+	    	currId = currId + 1;
+	    END IF;
+	
+        FOR j IN 1 .. число LOOP
+                INSERT INTO Фильмы(ид, название, начало_съемок, конец_съемок, премьера, продолжительность, бюджет, возрастной_рейтинг, кассовые_сборы) 
+                VALUES (currId, 'Звездные войны ' || currId, start, end, release, (120 + 10 * ), (200 + 100 * random()), 'NC-17', (50 + 120 * random()));
+                currId = currId + 1;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+random_film_date() 
 
 CREATE OR REPLACE FUNCTION insert_tickets_for_session(session_id int)
 RETURNS VOID AS $$

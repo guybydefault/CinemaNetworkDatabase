@@ -64,7 +64,7 @@ CREATE TABLE "Фильмы" (
 		CONSTRAINT csr_duration CHECK ("продолжительность" > 0),
 	"бюджет" int,
 		CONSTRAINT csr_budget CHECK ("бюджет" > 0),
-	"возрастной_рейтинг" VARCHAR(4) NOT NULL 
+	"возрастной_рейтинг" VARCHAR(5) NOT NULL 
 		CONSTRAINT csr_age_rate CHECK("возрастной_рейтинг" in('G','PG','PG-13','R','NC-17')),
 	"слоган" TEXT,
 	"кассовые_сборы" int,
