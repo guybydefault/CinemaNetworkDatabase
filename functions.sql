@@ -26,7 +26,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION random_film_interval() 
-RETURNS TIMESTAMP AS $$
+RETURNS INTERVAL AS $$
 BEGIN
         return random() * interval '2 months';
 END;
@@ -81,12 +81,12 @@ RETURNS VOID AS $$
 DECLARE
 	currId int = 0;
 	row Сети%ROWTYPE;
-	start timestamp = random_film_date();
-	end timestamp;
+	start_scene timestamp = random_film_date();
+	end_scene timestamp;
 	release timestamp;
 BEGIN
-		end = start + random_film_interval();
-		release = end + random_film_interval();
+		end_scene = start_scene + random_film_interval();
+		release = end_scene + random_film_interval();
 	    SELECT MAX(ид) + 1 INTO currId FROM Фильмы;
 	    IF currId IS NULL THEN
 	    	currId = 0;
@@ -96,276 +96,17 @@ BEGIN
 	
         FOR j IN 1 .. число LOOP
                 INSERT INTO Фильмы(ид, название, начало_съемок, конец_съемок, премьера, продолжительность, бюджет, возрастной_рейтинг, кассовые_сборы) 
-                VALUES (currId, 'Звездные войны ' || currId, start, end, release, (120 + 10 * ), (200 + 100 * random()), 'NC-17', (50 + 120 * random()));
+                VALUES (currId, 'Звездные войны ' || currId, start_scene, end_scene, release, (120 + 10 * random()), (200 + 100 * random()), 'NC17', (50 + 120 * random()));
                 currId = currId + 1;
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
-random_film_date() 
-
-CREATE OR REPLACE FUNCTION insert_tickets_for_session(session_id int)
-RETURNS VOID AS $$
-DECLARE
-        room_id int;
-        place_id record;
-BEGIN
-        room_id = (SELECT ид_фильма FROM Сеансы where Сеансы.ид = session_id);
-        FOR place_id IN (SELECT ид from Места where ид_зала=room_id)
-        LOOP
-                INSERT INTO Билеты(ид_места, ид_сеанса, стоимость, статус) 
-        values(place_id.ид, session_id, random()::int, 0);
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_cinema_circuit(count int)
+CREATE OR REPLACE FUNCTION сгенерировать_базу(count int)
 RETURNS VOID AS $$
 BEGIN
-        FOR i in 1 .. count LOOP
-                insert into Сети(название) values(random_string(10));
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION insert_cinemas(count int)
-RETURNS VOID AS $$
-DECLARE
-        circuit record;
-BEGIN
-        FOR circuit IN (SELECT ид, название from Сети)
-        LOOP
-                FOR i in 1 .. count LOOP
-                insert into Кинотеатры(ид_сети, название, город, адрес) 
-                        values(circuit.ид,circuit.название, 'Санкт-Петербург', random_string(8));
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION insert_rooms(count int)
-RETURNS VOID AS $$
-DECLARE
-        cinema record;
-BEGIN
-        FOR cinema IN (SELECT ид from Кинотеатры)
-        LOOP
-                FOR i in 1 .. count LOOP
-                insert into Залы(ид_кинотеатра, номер_зала) 
-                        values(cinema.ид,i);
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_places()
-RETURNS VOID AS $$
-DECLARE
-        cinema_room record;
-BEGIN
-        FOR cinema_room IN (SELECT ид from Залы)
-        LOOP
-                PERFORM insert_places_for_cinema_room
-                (cinema_room.ид,(random()*10+ 1)::int,(random()*20)::int+ 1,(random()*500)::int + 1);
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION insert_users(count int)
-RETURNS VOID AS $$
-BEGIN
-        FOR i in 1 .. count LOOP
-                insert into Пользователи(логин, пароль, фио, дата_регистрации)
-                 values (random_string(10), random_string(10),random_string(20),random_date());
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_people(count int)
-RETURNS VOID AS $$
-BEGIN
-        FOR i in 1 .. count LOOP
-                insert into Люди(фио)
-                 values (random_string(20));
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION insert_genres(count int)
-RETURNS VOID AS $$
-BEGIN
-        FOR i in 1 .. count LOOP
-                insert into Жанры(название)
-                 values (random_string(20));
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_films(count int)
-RETURNS VOID AS $$
-DECLARE
-        film_date timestamp;
-BEGIN
-        film_date = random_date();
-        FOR i in 1 .. count LOOP
-                insert into Фильмы(название, дата_начала_съемок, дата_конца_съемок,дата_премьеры,продолжительность,бюджет,возрастной_рейтинг) 
-        values(random_string(20),film_date,(film_date + ('12 months')::interval)::timestamp,
-                (film_date + ('13 months')::interval)::timestamp,'121','11000','G');
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_sessions()
-RETURNS VOID AS $$
-DECLARE
-        film record;
-        room record;
-        film_time timestamp;
-BEGIN
-        FOR room IN (SELECT ид from Залы)
-        LOOP
-                FOR film IN (SELECT * from Фильмы)
-                LOOP
-                        film_time = (film.дата_премьеры + ('1 months')::interval)::timestamp;
-                        insert into Сеансы(ид_фильма, ид_зала, дата_начала, дата_конца) 
-                                values(film.ид, room.ид, 
-                                        film_time, (film_time + ('1 hour')::interval)::timestamp);
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_responses()
-RETURNS VOID AS $$
-DECLARE
-        film record;
-        users record;
-BEGIN
-        FOR users IN (SELECT ид from Пользователи)
-        LOOP
-                FOR film IN (SELECT ид from Фильмы)
-                LOOP
-                        insert into Оценки(ид_фильма,ид_пользователя, значение, комментарий) 
-        values(film.ид,users.ид, 5, random_string(5));
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_genres_to_films()
-RETURNS VOID AS $$
-DECLARE
-        film record;
-        genres record;
-BEGIN
-        FOR genres IN (SELECT ид from Жанры)
-        LOOP
-                FOR film IN (SELECT ид from Фильмы)
-                LOOP
-                        insert into Фильмы_Жанры 
-                                values(film.ид, genres.ид);
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_groups(count int)
-RETURNS VOID AS $$
-BEGIN
-        FOR i in 1 .. count LOOP
-                insert into Группы(название) values(random_string(10));
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_groups_to_films()
-RETURNS VOID AS $$
-DECLARE
-        film record;
-        groups record;
-BEGIN
-        FOR groups IN (SELECT ид from Группы)
-        LOOP
-                FOR film IN (SELECT ид from Фильмы)
-                LOOP
-                        insert into Фильмы_Группы 
-                                values(film.ид,groups.ид);
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION insert_media()
-RETURNS VOID AS $$
-DECLARE
-        film record;
-BEGIN
-        FOR film IN (SELECT ид from Фильмы)
-        LOOP
-                insert into Медиа(название, ид_фильма, тип, url) 
-                        values(random_string(20),
-                         film.ид, random_string(5), random_string(30));
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_roles()
-RETURNS VOID AS $$
-DECLARE
-        people record;
-        groupr record;
-BEGIN
-        FOR people IN (SELECT ид from Люди)
-        LOOP
-                FOR groupr IN (SELECT ид from Группы)
-                LOOP
-                        insert into Роли(название,ид_человека,ид_группы) 
-                                values(random_string(10),people.ид, groupr.ид);
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_peoples_to_groups()
-RETURNS VOID AS $$
-DECLARE
-        people record;
-        groups record;
-BEGIN
-        FOR groups IN (SELECT ид from Группы)
-        LOOP
-                FOR people IN (SELECT ид from Люди)
-                LOOP
-                        insert into Люди_Группы 
-                                values(people.ид,groups.ид);
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
-
-CREATE OR REPLACE FUNCTION insert_random_database(count int)
-RETURNS VOID AS $$
-BEGIN
-        PERFORM insert_cinema_circuit(count / 100);
-        PERFORM insert_cinemas(count / 50);
-        PERFORM insert_rooms(count / 100);
-        PERFORM insert_places();
-        PERFORM insert_users(count*2);
-        PERFORM insert_people(count);
-        PERFORM insert_genres(count);
-        PERFORM insert_films(count/4);
-        PERFORM insert_sessions();
-        PERFORM insert_responses();
-        PERFORM insert_genres_to_films();
-        PERFORM insert_groups_to_films();
-        PERFORM insert_media();
-        PERFORM insert_roles();
-        PERFORM insert_people_to_groups();
+        PERFORM сгенерировать_сети(40);
+        PERFORM сгенерировать_кинотеатры(30);
 END;
 $$ LANGUAGE plpgsql;
 
