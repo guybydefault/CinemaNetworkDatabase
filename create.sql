@@ -152,3 +152,59 @@ CREATE TABLE "Фильмы_Группы" (
 	"ид_группы" INTEGER NOT NULL REFERENCES "Группы" ON DELETE CASCADE,
 	PRIMARY KEY ("ид_фильма", "ид_группы")
 );
+
+
+
+----
+---- Триггеры
+----
+
+DROP TRIGGER IF EXISTS сеансы_до_премьеры_запрещены ON "Сеансы";
+DROP TRIGGER IF EXISTS награды_до_премьеры_запрещены ON "Награды";
+DROP TRIGGER IF EXISTS оценки_до_премьеры_запрещены ON "Оценки";
+
+CREATE OR REPLACE FUNCTION сеансы_до_премьеры_запрещены () RETURNS trigger AS $сеансы_до_премьеры_запрещены$ 
+DECLARE 
+	премьера timestamp;
+BEGIN
+SELECT Фильмы.премьера INTO премьера FROM "Фильмы" WHERE ид = NEW.ид_фильма;
+IF NEW.дата_начала < премьера THEN
+	RAISE EXCEPTION 'Дата премьеры фильма (%) не может быть позже, чем дата начала показа (%)', премьера, NEW.дата_начала;
+END IF;
+
+RETURN NEW;
+END;
+$сеансы_до_премьеры_запрещены$  LANGUAGE plpgsql;
+
+CREATE TRIGGER "сеансы_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Сеансы" 
+FOR EACH ROW EXECUTE PROCEDURE сеансы_до_премьеры_запрещены();
+
+CREATE OR REPLACE FUNCTION награды_до_премьеры_запрещены() RETURNS trigger AS $награды_до_премьеры_запрещены$ 
+DECLARE 
+	премьера timestamp;
+BEGIN
+SELECT Фильмы.премьера INTO премьера FROM "Фильмы" WHERE ид = NEW.ид_фильма;
+IF now() < премьера THEN
+	RAISE EXCEPTION 'Награда не может вручаться до выхода фильма (премьера %)', премьера;
+END IF;
+RETURN NEW;
+END;
+$награды_до_премьеры_запрещены$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "награды_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Награды" 
+FOR EACH ROW EXECUTE PROCEDURE награды_до_премьеры_запрещены();
+
+CREATE OR REPLACE FUNCTION оценки_до_премьеры_запрещены() RETURNS trigger AS $оценки_до_премьеры_запрещены$ 
+DECLARE 
+	премьера timestamp;
+BEGIN
+SELECT Фильмы.премьера INTO премьера FROM "Фильмы" WHERE ид = NEW.ид_фильма;
+IF NEW.дата_время < премьера THEN
+	RAISE EXCEPTION 'Оценка не может быть поставлена до премьеры фильма (премьера %)', премьера;
+END IF;
+RETURN NEW;
+END;
+$оценки_до_премьеры_запрещены$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "оценки_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Оценки" 
+FOR EACH ROW EXECUTE PROCEDURE оценки_до_премьеры_запрещены();
