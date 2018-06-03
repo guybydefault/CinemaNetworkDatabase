@@ -96,7 +96,7 @@ BEGIN
 	
         FOR j IN 1 .. число LOOP
                 INSERT INTO Фильмы(ид, название, начало_съемок, конец_съемок, премьера, продолжительность, бюджет, возрастной_рейтинг, кассовые_сборы) 
-                VALUES (currId, 'Звездные войны ' || currId, start_scene, end_scene, release, (120 + 10 * random()), (200 + 100 * random()), 'NC17', (50 + 120 * random()));
+                VALUES (currId, 'Звездные войны ' || currId, start_scene, end_scene, release, (120 + 10 * random()), (200 + 100 * random()), 'NC-17', (50 + 120 * random()));
                 currId = currId + 1;
         END LOOP;
 END;

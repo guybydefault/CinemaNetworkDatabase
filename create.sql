@@ -69,7 +69,7 @@ CREATE TABLE "Фильмы" (
 	"слоган" TEXT,
 	"кассовые_сборы" int,
 		CONSTRAINT csr_money CHECK ("кассовые_сборы" > 0),
-	CONSTRAINT csr_movie_start_end_range CHECK ("начало_съемок" > "конец_съемок"),
+	CONSTRAINT csr_movie_start_end_range CHECK ("начало_съемок" < "конец_съемок"),
 	CONSTRAINT csr_movie_release_end CHECK ("конец_съемок" < "премьера"),
 	PRIMARY KEY ("ид")
 );
