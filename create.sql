@@ -17,7 +17,7 @@ CREATE TABLE "Кинотеатры" (
 CREATE TABLE "Залы" (
 	"ид" SERIAL NOT NULL,
 	"ид_кинотеатра" INTEGER NOT NULL REFERENCES "Кинотеатры" ON DELETE CASCADE,
-	"номер_зала" INTEGER NOT NULL CONSTRAINT csr_room_id CHECK ("номер_зала" > 0),
+	"номер_зала" INTEGER NOT NULL UNIQUE CONSTRAINT csr_room_id CHECK ("номер_зала" > 0),
 	PRIMARY KEY ("ид")
 );
 

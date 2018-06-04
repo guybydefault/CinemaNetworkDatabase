@@ -42,8 +42,6 @@ BEGIN
 	    SELECT MAX(ид) + 1 INTO startId FROM Сети;
 	    IF startId IS NULL THEN
 	    	startId = 0;
-	    ELSE 
-	    	startId = startId + 1;
 	    END IF;
 		currId = startId;
         WHILE currId <> startId + count LOOP
@@ -63,8 +61,6 @@ BEGIN
 	    SELECT MAX(ид) + 1 INTO currId FROM Кинотеатры;
 	    IF currId IS NULL THEN
 	    	currId = 0;
-	    ELSE 
-	    	currId = currId + 1;
 	    END IF;
 		
         FOR row IN SELECT * FROM Сети LOOP
@@ -76,17 +72,35 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION сгенерировать_залы(число_на_кинотеатр int)
+RETURNS VOID AS $$
+DECLARE
+	currId int = 0;
+	row Кинотеатры%ROWTYPE;
+BEGIN
+	    SELECT MAX(ид) + 1 INTO currId FROM Залы;
+	    IF currId IS NULL THEN
+	    	currId = 0;
+	    END IF;
+		
+        FOR row IN SELECT * FROM Кинотеатры LOOP
+                FOR j IN 1 .. число_на_кинотеатр LOOP
+                        INSERT INTO Залы(ид, ид_кинотеатра, номер_зала) VALUES (currId, row.ид, currId);
+                        currId = currId + 1;
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
 CREATE OR REPLACE FUNCTION сгенерировать_фильмы(число int)
 RETURNS VOID AS $$
 DECLARE
 	currId int = 0;
 	row Сети%ROWTYPE;
-	start_scene timestamp = random_film_date();
+	start_scene timestamp;
 	end_scene timestamp;
 	release timestamp;
 BEGIN
-		end_scene = start_scene + random_film_interval();
-		release = end_scene + random_film_interval();
 	    SELECT MAX(ид) + 1 INTO currId FROM Фильмы;
 	    IF currId IS NULL THEN
 	    	currId = 0;
@@ -95,6 +109,9 @@ BEGIN
 	    END IF;
 	
         FOR j IN 1 .. число LOOP
+        		start_scene = random_film_date();
+        		end_scene = start_scene + random_film_interval();
+				release = end_scene + random_film_interval();
                 INSERT INTO Фильмы(ид, название, начало_съемок, конец_съемок, премьера, продолжительность, бюджет, возрастной_рейтинг, кассовые_сборы) 
                 VALUES (currId, 'Звездные войны ' || currId, start_scene, end_scene, release, (120 + 10 * random()), (200 + 100 * random()), 'NC-17', (50 + 120 * random()));
                 currId = currId + 1;
@@ -102,11 +119,41 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_базу(count int)
+CREATE OR REPLACE FUNCTION сгенерировать_сеансы(число_на_фильм int)
+RETURNS VOID AS $$
+DECLARE
+	currId int = 0;
+	row Фильм%ROWTYPE;
+	start timestamp;
+	end timestamp;
+BEGIN
+	    SELECT MAX(ид) + 1 INTO currId FROM Сеансы;
+	    IF currId IS NULL THEN
+	    	currId = 0;
+	    END IF;
+	
+		FOR row IN SELECT * FROM Кинотеатры LOOP
+        	FOR j IN 1 .. число_на_фильм LOOP
+        			
+        	END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION сгенерировать_базу(count int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
 RETURNS VOID AS $$
 BEGIN
-        PERFORM сгенерировать_сети(40);
-        PERFORM сгенерировать_кинотеатры(30);
+        PERFORM сгенерировать_сети(20 * count);
+        PERFORM сгенерировать_кинотеатры(10 * count);
+        PERFORM сгенерировть_залы(5 * count);
+        PERFORM сгенерировать_фильмы(1000 * count);
+        PERFORM сгенерировать_пользователей(1000 * count);
+        PERFORM сгенерировать_оценки(2000 * count); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
+        PERFORM сгенерировать_сеансы(150 * count); -- по 150 сеансов на фильм
+    	PEFORM сгенерировать_места(60 * count); -- по 60 мест на каждый зал
+    	PERFORM сгенерировать_билеты(15 * count); -- абсолютно рандомно сгенерить билеты по 15 на сеанс 
+        
 END;
 $$ LANGUAGE plpgsql;
 
