@@ -141,10 +141,10 @@ BEGIN
                 FOR film IN (SELECT * FROM Фильмы)
                 LOOP
                     FOR i IN 1 .. число_сеансов_фильма LOOP
-                        film_time = (film.премьера + ('1 months')::INTERVAL)::TIMESTAMP;
-                        INSERT INTO Сеансы(ид_фильма, ид_зала, дата_начала, дата_конца)
+                        film_time = (film.премьера + random_film_interval())::TIMESTAMP;
+                        INSERT INTO Сеансы(ид_фильма, ид_зала, начало, конец)
                                 VALUES(film.ид, room.ид,
-                                        film_time, (film_time + ('1 hour')::INTERVAL)::TIMESTAMP);
+                                        film_time, (film_time + ('2 hours')::INTERVAL)::TIMESTAMP);
                     END LOOP;
                 END LOOP;
         END LOOP;
@@ -162,7 +162,7 @@ BEGIN
                 FOR film IN (SELECT ид, премьера FROM Фильмы)
                 LOOP
                         INSERT INTO Оценки(ид_фильма,ид_пользователя, значение, комментарий, дата_время)
-        VALUES(film.ид, users.ид, random()*5 + 1, random_string(5), (film.премьера + random_film_interval()));
+        VALUES(film.ид, users.ид, random()*9 + 1, random_string(5), (film.премьера + random_film_interval()));
                 END LOOP;
         END LOOP;
 END;
@@ -183,25 +183,6 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_залы(число_на_кинотеатр int)
-RETURNS VOID AS $$
-DECLARE
-        currId int = 0;
-        ROW Кинотеатры%ROWTYPE;
-BEGIN
-            SELECT MAX(ид) + 1 INTO currId FROM Залы;
-            IF currId IS NULL THEN
-                currId = 0;
-            END IF;
- 
-        FOR ROW IN SELECT * FROM Кинотеатры LOOP
-                FOR j IN 1 .. число_на_кинотеатр LOOP
-                        INSERT INTO Залы(ид, ид_кинотеатра, номер_зала) VALUES (currId, ROW.ид, currId + 1);
-                        currId = currId + 1;
-                END LOOP;
-        END LOOP;
-END;
-$$ LANGUAGE plpgsql;
  
 CREATE OR REPLACE FUNCTION сгенерировать_базу(COUNT int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
 RETURNS VOID AS $$
@@ -211,8 +192,8 @@ BEGIN
         PERFORM сгенерировать_залы(5 * COUNT);
         PERFORM сгенерировать_фильмы(1000 * COUNT);
         PERFORM сгенерировать_пользователей(1000 * COUNT);
-        PERFORM сгенерировать_оценки(2000 * COUNT); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
-        PERFORM сгенерировать_сеансы(150 * COUNT); -- по 150 сеансов на фильм
+        PERFORM сгенерировать_оценки(1000 * COUNT); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
+        PERFORM сгенерировать_сеансы(15 * COUNT); -- по 15 сеансов фильмов на зал
         PERFORM сгенерировать_места(60 * COUNT); -- по 60 мест на каждый зал
         PERFORM сгенерировать_билеты(15 * COUNT); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
  

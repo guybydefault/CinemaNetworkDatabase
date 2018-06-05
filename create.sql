@@ -29,7 +29,8 @@ CREATE TABLE "Места" (
 	"место" INTEGER NOT NULL 
 		CONSTRAINT csr_place CHECK ("место" > 0),
 	"стоимость" INTEGER NOT NULL 
-		CONSTRAINT csr_seat_price CHECK ("стоимость" > 0),
+		CONSTRAINT csr_seat_price CHECK ("стоимость" > 0), 
+	UNIQUE (ид_зала, ряд, место), 
 	PRIMARY KEY ("ид")
 );
 
@@ -160,10 +161,11 @@ CREATE TABLE "Фильмы_Группы" (
 ----
 
 DROP TRIGGER IF EXISTS сеансы_до_премьеры_запрещены ON "Сеансы";
+DROP TRIGGER IF EXISTS проверка_сеансов ON "Сеансы";
 DROP TRIGGER IF EXISTS награды_до_премьеры_запрещены ON "Награды";
 DROP TRIGGER IF EXISTS оценки_до_премьеры_запрещены ON "Оценки";
 
-CREATE OR REPLACE FUNCTION сеансы_до_премьеры_запрещены () RETURNS trigger AS $сеансы_до_премьеры_запрещены$ 
+CREATE OR REPLACE FUNCTION проверка_сеансов () RETURNS trigger AS $$ 
 DECLARE 
 	премьера timestamp;
 BEGIN
@@ -174,12 +176,12 @@ END IF;
 
 RETURN NEW;
 END;
-$сеансы_до_премьеры_запрещены$  LANGUAGE plpgsql;
+$$  LANGUAGE plpgsql;
 
 CREATE TRIGGER "сеансы_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Сеансы" 
 FOR EACH ROW EXECUTE PROCEDURE сеансы_до_премьеры_запрещены();
 
-CREATE OR REPLACE FUNCTION награды_до_премьеры_запрещены() RETURNS trigger AS $награды_до_премьеры_запрещены$ 
+CREATE OR REPLACE FUNCTION награды_до_премьеры_запрещены() RETURNS trigger AS $$ 
 DECLARE 
 	премьера timestamp;
 BEGIN
@@ -189,12 +191,12 @@ IF now() < премьера THEN
 END IF;
 RETURN NEW;
 END;
-$награды_до_премьеры_запрещены$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER "награды_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Награды" 
 FOR EACH ROW EXECUTE PROCEDURE награды_до_премьеры_запрещены();
 
-CREATE OR REPLACE FUNCTION оценки_до_премьеры_запрещены() RETURNS trigger AS $оценки_до_премьеры_запрещены$ 
+CREATE OR REPLACE FUNCTION оценки_до_премьеры_запрещены() RETURNS trigger AS $$ 
 DECLARE 
 	премьера timestamp;
 BEGIN
@@ -204,7 +206,7 @@ IF NEW.дата_время < премьера THEN
 END IF;
 RETURN NEW;
 END;
-$оценки_до_премьеры_запрещены$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql;
 
 CREATE TRIGGER "оценки_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Оценки" 
 FOR EACH ROW EXECUTE PROCEDURE оценки_до_премьеры_запрещены();
