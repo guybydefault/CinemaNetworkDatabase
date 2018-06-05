@@ -183,6 +183,23 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
+CREATE OR REPLACE FUNCTION сгенерировать_билеты(число_билетов int)
+RETURNS VOID AS $$
+DECLARE
+        session Сеансы%ROWTYPE;
+        seat Места%ROWTYPE;
+BEGIN
+        FOR session IN (SELECT ид FROM Сеансы) LOOP
+        	FOR seat IN (SELECT ид FROM Места WHERE Места.ид_зала = session.ид_зала) LOOP 
+        		IF random() > 0.5 THEN
+                	INSERT INTO Билеты (ид_сеанса, ид_места, стоимость, статус) 
+               	 	VALUES (session.ид, seat.ид, random() * 500 + 100, random() * 2);
+                END IF; 
+       		END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
  
 CREATE OR REPLACE FUNCTION сгенерировать_базу(COUNT int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
 RETURNS VOID AS $$

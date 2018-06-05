@@ -137,7 +137,8 @@ CREATE TABLE "Билеты" (
 	"ид_пользователя" INTEGER REFERENCES "Пользователи" ON DELETE RESTRICT,
 	"стоимость" INTEGER NOT NULL CONSTRAINT csr_ticket_price CHECK ("стоимость" > 0),
 	"статус" INTEGER NOT NULL, 
-		CONSTRAINT csr_tickets_state CHECK("статус" BETWEEN 0 AND 2),
+		CONSTRAINT csr_tickets_state CHECK("статус" BETWEEN 0 AND 2), 
+	CONSTRAINT csr_one_ticket_per_seat UNIQUE (ид_сеанса, ид_места), 
 	PRIMARY KEY ("ид")
 );
 
@@ -213,3 +214,22 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER "оценки_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Оценки" 
 FOR EACH ROW EXECUTE PROCEDURE оценки_до_премьеры_запрещены();
+
+----
+
+CREATE OR REPLACE FUNCTION проверка_билета() RETURNS trigger AS $$ 
+DECLARE 
+	места_ид_зала int;
+	сеансы_ид_зала int;
+BEGIN
+SELECT Места.ид_зала INTO места_ид_зала FROM "Места" WHERE ид = NEW.ид_места;
+SELECT Сеансы.ид_зала INTO сеансы_ид_зала FROM "Сеансы" WHERE ид = NEW.ид_сеанса;
+IF места_ид_зала <> сеансы_ид_зала THEN
+	RAISE EXCEPTION 'ИД зала, указанный в информации о месте билета (%) не соответствует ИД зала, указанному в сеансах (%)', места_ид_зала, сеансы_ид_зала;
+END IF;
+RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER "проверка_билета" BEFORE INSERT OR UPDATE ON "Билеты" 
+FOR EACH ROW EXECUTE PROCEDURE проверка_билета();
