@@ -199,10 +199,10 @@ DECLARE
 BEGIN
         FOR sess IN (SELECT * FROM Сеансы) LOOP
                 FOR seat IN (SELECT * FROM Места WHERE Места.ид_зала = sess.ид_зала) LOOP 
-                        IF random() > 0.5 THEN
+--                         IF random() > 0.5 THEN
                         INSERT INTO Билеты (ид_сеанса, ид_места, стоимость, статус) 
                         VALUES (sess.ид, seat.ид, random() * 500 + 100, random() * 2);
-                		   END IF; 
+                		 --   END IF; 
                 END LOOP;
         END LOOP;
 END;
