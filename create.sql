@@ -162,12 +162,13 @@ CREATE TABLE "Фильмы_Группы" (
 ----
 
 DROP TRIGGER IF EXISTS сеансы_до_премьеры_запрещены ON "Сеансы";
-DROP TRIGGER IF EXISTS проверка_сеансов ON "Сеансы";
+DROP TRIGGER IF EXISTS проверка_сеанса ON "Сеансы";
 DROP TRIGGER IF EXISTS награды_до_премьеры_запрещены ON "Награды";
 DROP TRIGGER IF EXISTS оценки_до_премьеры_запрещены ON "Оценки";
+DROP TRIGGER IF EXISTS проверка_билета ON "Билеты";
 
 ----
-CREATE OR REPLACE FUNCTION проверка_сеансов () RETURNS trigger AS $$ 
+CREATE OR REPLACE FUNCTION проверка_сеанса() RETURNS trigger AS $$ 
 DECLARE 
 	премьера timestamp;
 BEGIN
@@ -180,8 +181,8 @@ RETURN NEW;
 END;
 $$  LANGUAGE plpgsql;
 
-CREATE TRIGGER "сеансы_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Сеансы" 
-FOR EACH ROW EXECUTE PROCEDURE сеансы_до_премьеры_запрещены();
+CREATE TRIGGER "проверка_сеанса" BEFORE INSERT OR UPDATE ON "Сеансы" 
+FOR EACH ROW EXECUTE PROCEDURE проверка_сеанса();
 ----
 
 CREATE OR REPLACE FUNCTION награды_до_премьеры_запрещены() RETURNS trigger AS $$ 
