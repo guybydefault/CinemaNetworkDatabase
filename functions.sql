@@ -85,7 +85,7 @@ BEGIN
 		
         FOR row IN SELECT * FROM Кинотеатры LOOP
                 FOR j IN 1 .. число_на_кинотеатр LOOP
-                        INSERT INTO Залы(ид, ид_кинотеатра, номер_зала) VALUES (currId, row.ид, currId);
+                        INSERT INTO Залы(ид, ид_кинотеатра, номер_зала) VALUES (currId, row.ид, currId + 1);
                         currId = currId + 1;
                 END LOOP;
         END LOOP;

@@ -30,7 +30,7 @@ CREATE TABLE "Места" (
 		CONSTRAINT csr_place CHECK ("место" > 0),
 	"стоимость" INTEGER NOT NULL 
 		CONSTRAINT csr_seat_price CHECK ("стоимость" > 0), 
-	UNIQUE (ид_зала, ряд, место), 
+	CONSTRAINT csr_unique_seat UNIQUE (ид_зала, ряд, место), 
 	PRIMARY KEY ("ид")
 );
 
