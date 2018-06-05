@@ -165,13 +165,14 @@ DROP TRIGGER IF EXISTS проверка_сеансов ON "Сеансы";
 DROP TRIGGER IF EXISTS награды_до_премьеры_запрещены ON "Награды";
 DROP TRIGGER IF EXISTS оценки_до_премьеры_запрещены ON "Оценки";
 
+----
 CREATE OR REPLACE FUNCTION проверка_сеансов () RETURNS trigger AS $$ 
 DECLARE 
 	премьера timestamp;
 BEGIN
 SELECT Фильмы.премьера INTO премьера FROM "Фильмы" WHERE ид = NEW.ид_фильма;
-IF NEW.дата_начала < премьера THEN
-	RAISE EXCEPTION 'Дата премьеры фильма (%) не может быть позже, чем дата начала показа (%)', премьера, NEW.дата_начала;
+IF NEW.начало < премьера THEN
+	RAISE EXCEPTION 'Дата премьеры фильма (%) не может быть позже, чем дата начала показа (%)', премьера, NEW.начало;
 END IF;
 
 RETURN NEW;
@@ -180,6 +181,7 @@ $$  LANGUAGE plpgsql;
 
 CREATE TRIGGER "сеансы_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Сеансы" 
 FOR EACH ROW EXECUTE PROCEDURE сеансы_до_премьеры_запрещены();
+----
 
 CREATE OR REPLACE FUNCTION награды_до_премьеры_запрещены() RETURNS trigger AS $$ 
 DECLARE 
@@ -195,6 +197,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE TRIGGER "награды_до_премьеры_запрещены" BEFORE INSERT OR UPDATE ON "Награды" 
 FOR EACH ROW EXECUTE PROCEDURE награды_до_премьеры_запрещены();
+----
 
 CREATE OR REPLACE FUNCTION оценки_до_премьеры_запрещены() RETURNS trigger AS $$ 
 DECLARE 
