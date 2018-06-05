@@ -123,8 +123,8 @@ CREATE OR REPLACE FUNCTION сгенерировать_пользователей
 RETURNS VOID AS $$
 BEGIN
         FOR i IN 1 .. число_пользователей LOOP
-                INSERT INTO Пользователи(логин, пароль, фио, дата_регистрации)
-                 VALUES (random_string(10), random_string(10),random_string(20),random_date());
+                INSERT INTO Пользователи(логин, пароль, фио)
+                 VALUES (random_string(10), random_string(10),random_string(20));
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
@@ -161,8 +161,8 @@ BEGIN
         LOOP
                 FOR film IN (SELECT ид FROM Фильмы)
                 LOOP
-                        INSERT INTO Оценки(ид_фильма,ид_пользователя, значение, комментарий)
-        VALUES(film.ид,users.ид, (random()*5)::int, random_string(5));
+                        INSERT INTO Оценки(ид_фильма,ид_пользователя, значение, комментарий, дата_время)
+        VALUES(film.ид,users.ид, (random()*5)::int, random_string(5), (film.дата_премьеры + random_film_interval()));
                 END LOOP;
         END LOOP;
 END;
