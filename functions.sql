@@ -178,7 +178,7 @@ BEGIN
         LOOP
         	row_c = 0;
             FOR i IN 1..число_мест LOOP
-                INSERT INTO Места (зал, ряд, место, стоимость) 
+                INSERT INTO Места (зал_ид, ряд, место, стоимость) 
                 VALUES (cinema_room.ид, row_c, i % 10, random() * 100 + 100);
                 IF i % 10 = 0 THEN
                 	row_c = row_c + 1;
