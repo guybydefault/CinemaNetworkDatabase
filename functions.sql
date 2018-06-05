@@ -175,12 +175,17 @@ CREATE OR REPLACE FUNCTION сгенерировать_места(число_ме
 RETURNS VOID AS $$
 DECLARE
         cinema_room RECORD;
+        row_c int;
 BEGIN
         FOR cinema_room IN (SELECT ид FROM Залы)
         LOOP
+        	row_c = 0;
             FOR i IN 1..число_мест LOOP
-                PERFORM insert_places_for_cinema_room
-                (cinema_room.ид,(random()*10+ 1)::int,(random()*20)::int+ 1,(random()*500)::int + 1);
+                INSERT INTO Места (зал_ид, ряд, место, стоимость) 
+                VALUES (cinema_room.ид, row_c, i % 10, random() * 100 + 100);
+                IF i % 10 = 0 THEN
+                	row_c = row_c + 1;
+                END IF;
             END LOOP;
         END LOOP;
 END;
@@ -216,10 +221,14 @@ BEGIN
 --         PERFORM сгенерировать_сеансы(15 * COUNT); -- по 15 сеансов фильмов на зал
 --         PERFORM сгенерировать_места(60 * COUNT); -- по 60 мест на каждый зал
 --         PERFORM сгенерировать_билеты(15 * COUNT); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
-        PERFORM сгенерировать_сети(20 * COUNT);
+        PERFORM сгенерировать_сети(10 * COUNT);
         PERFORM сгенерировать_кинотеатры(10 * COUNT);
         PERFORM сгенерировать_залы(5 * COUNT);
+<<<<<<< HEAD
         PERFORM сгенерировать_фильмы(100 * COUNT);
+=======
+        PERFORM сгенерировать_фильмы(10 * COUNT);
+>>>>>>> baf37be5549d0afb36ff1ce0dd68549c3dbc286d
         PERFORM сгенерировать_пользователей(10 * COUNT);
         PERFORM сгенерировать_оценки(); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
         PERFORM сгенерировать_сеансы(10 * COUNT); -- по 15 сеансов фильмов на зал
