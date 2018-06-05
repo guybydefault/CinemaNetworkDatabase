@@ -194,14 +194,14 @@ $$ LANGUAGE plpgsql;
 CREATE OR REPLACE FUNCTION сгенерировать_билеты()
 RETURNS VOID AS $$
 DECLARE
-        session Сеансы%ROWTYPE;
+        sess Сеансы%ROWTYPE;
         seat Места%ROWTYPE;
 BEGIN
-        FOR session IN (SELECT ид FROM Сеансы) LOOP
-                FOR seat IN (SELECT ид FROM Места WHERE Места.ид_зала = session.ид_зала) LOOP 
+        FOR sess IN (SELECT ид FROM Сеансы) LOOP
+                FOR seat IN (SELECT ид FROM Места WHERE Места.ид_зала = sess.ид_зала) LOOP 
 --                         IF random() > 0.5 THEN
                         INSERT INTO Билеты (ид_сеанса, ид_места, стоимость, статус) 
-                        VALUES (session.ид, seat.ид, random() * 500 + 100, random() * 2);
+                        VALUES (sess.ид, seat.ид, random() * 500 + 100, random() * 2);
 --                 		   END IF; 
                 END LOOP;
         END LOOP;
