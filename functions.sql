@@ -159,10 +159,10 @@ DECLARE
 BEGIN
         FOR users IN (SELECT ид FROM Пользователи)
         LOOP
-                FOR film IN (SELECT ид FROM Фильмы)
+                FOR film IN (SELECT ид, премьера FROM Фильмы)
                 LOOP
                         INSERT INTO Оценки(ид_фильма,ид_пользователя, значение, комментарий, дата_время)
-        VALUES(film.ид,users.ид, (random()*5)::int, random_string(5), (film.премьера + random_film_interval()));
+        VALUES(film.ид, users.ид, (random()*5)::int, random_string(5), (film.премьера + random_film_interval()));
                 END LOOP;
         END LOOP;
 END;
