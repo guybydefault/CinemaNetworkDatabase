@@ -182,6 +182,26 @@ BEGIN
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_залы(число_на_кинотеатр int)
+RETURNS VOID AS $$
+DECLARE
+        currId int = 0;
+        ROW Кинотеатры%ROWTYPE;
+BEGIN
+            SELECT MAX(ид) + 1 INTO currId FROM Залы;
+            IF currId IS NULL THEN
+                currId = 0;
+            END IF;
+ 
+        FOR ROW IN SELECT * FROM Кинотеатры LOOP
+                FOR j IN 1 .. число_на_кинотеатр LOOP
+                        INSERT INTO Залы(ид, ид_кинотеатра, номер_зала) VALUES (currId, ROW.ид, currId);
+                        currId = currId + 1;
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
  
 CREATE OR REPLACE FUNCTION сгенерировать_базу(COUNT int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
 RETURNS VOID AS $$
