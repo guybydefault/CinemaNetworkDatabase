@@ -197,12 +197,12 @@ DECLARE
         sess Сеансы%ROWTYPE;
         seat Места%ROWTYPE;
 BEGIN
-        FOR sess IN (SELECT * FROM Сеансы) LOOP
-                FOR seat IN (SELECT * FROM Места WHERE Места.ид_зала = sess.ид_зала) LOOP 
---                         IF random() > 0.5 THEN
+        FOR sess IN (SELECT ид, ид_зала FROM Сеансы) LOOP
+                FOR seat IN (SELECT ид FROM Места WHERE Места.ид_зала = sess.ид_зала) LOOP 
+                        IF random() > 0.5 THEN
                         INSERT INTO Билеты (ид_сеанса, ид_места, стоимость, статус) 
                         VALUES (sess.ид, seat.ид, random() * 500 + 100, random() * 2);
-                		 --   END IF; 
+  				END IF; 
                 END LOOP;
         END LOOP;
 END;
@@ -229,7 +229,7 @@ BEGIN
         PERFORM сгенерировать_оценки(); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
         PERFORM сгенерировать_сеансы(10 * COUNT); -- по 15 сеансов фильмов на зал
         PERFORM сгенерировать_места(10 * COUNT); -- по 60 мест на каждый зал
-        PERFORM сгенерировать_билеты(10 * COUNT); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
+        PERFORM сгенерировать_билеты(); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
  
 END;
 $$ LANGUAGE plpgsql;
