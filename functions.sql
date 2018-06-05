@@ -141,7 +141,7 @@ BEGIN
                 FOR film IN (SELECT * FROM Фильмы)
                 LOOP
                     FOR i IN 1 .. число_сеансов_фильма LOOP
-                        film_time = (film.дата_премьеры + ('1 months')::INTERVAL)::TIMESTAMP;
+                        film_time = (film.премьера + ('1 months')::INTERVAL)::TIMESTAMP;
                         INSERT INTO Сеансы(ид_фильма, ид_зала, дата_начала, дата_конца)
                                 VALUES(film.ид, room.ид,
                                         film_time, (film_time + ('1 hour')::INTERVAL)::TIMESTAMP);
@@ -162,7 +162,7 @@ BEGIN
                 FOR film IN (SELECT ид FROM Фильмы)
                 LOOP
                         INSERT INTO Оценки(ид_фильма,ид_пользователя, значение, комментарий, дата_время)
-        VALUES(film.ид,users.ид, (random()*5)::int, random_string(5), (film.дата_премьеры + random_film_interval()));
+        VALUES(film.ид,users.ид, (random()*5)::int, random_string(5), (film.премьера + random_film_interval()));
                 END LOOP;
         END LOOP;
 END;
