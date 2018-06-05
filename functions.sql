@@ -119,42 +119,85 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_сеансы(число_на_фильм int)
+CREATE OR REPLACE FUNCTION сгенерировать_пользователей(число_пользователей int)
 RETURNS VOID AS $$
-DECLARE
-	currId int = 0;
-	row Фильм%ROWTYPE;
-	start timestamp;
-	end timestamp;
 BEGIN
-	    SELECT MAX(ид) + 1 INTO currId FROM Сеансы;
-	    IF currId IS NULL THEN
-	    	currId = 0;
-	    END IF;
-	
-		FOR row IN SELECT * FROM Кинотеатры LOOP
-        	FOR j IN 1 .. число_на_фильм LOOP
-        			
-        	END LOOP;
+        FOR i IN 1 .. число_пользователей LOOP
+                INSERT INTO Пользователи(логин, пароль, фио, дата_регистрации)
+                 VALUES (random_string(10), random_string(10),random_string(20),random_date());
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
-
-
-CREATE OR REPLACE FUNCTION сгенерировать_базу(count int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
+ 
+CREATE OR REPLACE FUNCTION сгенерировать_сеансы(число_сеансов_фильма int)
 RETURNS VOID AS $$
+DECLARE
+        film RECORD;
+        room RECORD;
+        film_time TIMESTAMP;
 BEGIN
-        PERFORM сгенерировать_сети(20 * count);
-        PERFORM сгенерировать_кинотеатры(10 * count);
-        PERFORM сгенерировть_залы(5 * count);
-        PERFORM сгенерировать_фильмы(1000 * count);
-        PERFORM сгенерировать_пользователей(1000 * count);
-        PERFORM сгенерировать_оценки(2000 * count); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
-        PERFORM сгенерировать_сеансы(150 * count); -- по 150 сеансов на фильм
-    	PEFORM сгенерировать_места(60 * count); -- по 60 мест на каждый зал
-    	PERFORM сгенерировать_билеты(15 * count); -- абсолютно рандомно сгенерить билеты по 15 на сеанс 
-        
+        FOR room IN (SELECT ид FROM Залы)
+        LOOP
+                FOR film IN (SELECT * FROM Фильмы)
+                LOOP
+                    FOR i IN 1 .. число_сеансов_фильма LOOP
+                        film_time = (film.дата_премьеры + ('1 months')::INTERVAL)::TIMESTAMP;
+                        INSERT INTO Сеансы(ид_фильма, ид_зала, дата_начала, дата_конца)
+                                VALUES(film.ид, room.ид,
+                                        film_time, (film_time + ('1 hour')::INTERVAL)::TIMESTAMP);
+                    END LOOP;
+                END LOOP;
+        END LOOP;
 END;
 $$ LANGUAGE plpgsql;
+ 
+CREATE OR REPLACE FUNCTION сгенерировать_оценки(число_оценок int)
+RETURNS VOID AS $$
+DECLARE
+        film RECORD;
+        users RECORD;
+BEGIN
+        FOR users IN (SELECT ид FROM Пользователи)
+        LOOP
+                FOR film IN (SELECT ид FROM Фильмы)
+                LOOP
+                        INSERT INTO Оценки(ид_фильма,ид_пользователя, значение, комментарий)
+        VALUES(film.ид,users.ид, (random()*5)::int, random_string(5));
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+ 
+CREATE OR REPLACE FUNCTION сгенерировать_места(число_мест int)
+RETURNS VOID AS $$
+DECLARE
+        cinema_room RECORD;
+BEGIN
+        FOR cinema_room IN (SELECT ид FROM Залы)
+        LOOP
+            FOR i IN 1..число_мест LOOP
+                PERFORM insert_places_for_cinema_room
+                (cinema_room.ид,(random()*10+ 1)::int,(random()*20)::int+ 1,(random()*500)::int + 1);
+            END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+ 
+CREATE OR REPLACE FUNCTION сгенерировать_базу(COUNT int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
+RETURNS VOID AS $$
+BEGIN
+        PERFORM сгенерировать_сети(20 * COUNT);
+        PERFORM сгенерировать_кинотеатры(10 * COUNT);
+        PERFORM сгенерировть_залы(5 * COUNT);
+        PERFORM сгенерировать_фильмы(1000 * COUNT);
+        PERFORM сгенерировать_пользователей(1000 * COUNT);
+        PERFORM сгенерировать_оценки(2000 * COUNT); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
+        PERFORM сгенерировать_сеансы(150 * COUNT); -- по 150 сеансов на фильм
+        PERFORM сгенерировать_места(60 * COUNT); -- по 60 мест на каждый зал
+        PERFORM сгенерировать_билеты(15 * COUNT); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
+ 
+END;
+$$ LANGUAGE plpgsql;
+
 
 
