@@ -33,10 +33,10 @@ END;
 $$ LANGUAGE plpgsql;
 
 
-CREATE OR REPLACE FUNCTION сгенерировать_сети(count int)
+CREATE OR REPLACE FUNCTION сгенерировать_сети(count integer)
 RETURNS VOID AS $$
 DECLARE
-        startId int = 0;
+        startId integer = 0;
         currId int;
 BEGIN
             SELECT MAX(ид) + 1 INTO startId FROM Сети;
@@ -52,10 +52,10 @@ END;
 $$
 LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_кинотеатры(число_на_сеть int)
+CREATE OR REPLACE FUNCTION сгенерировать_кинотеатры(число_на_сеть integer)
 RETURNS VOID AS $$
 DECLARE
-        currId int = 0;
+        currId integer = 0;
         row RECORD;
 BEGIN
             SELECT MAX(ид) + 1 INTO currId FROM Кинотеатры;
@@ -73,10 +73,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_залы(число_на_кинотеатр int)
+CREATE OR REPLACE FUNCTION сгенерировать_залы(число_на_кинотеатр integer)
 RETURNS VOID AS $$
 DECLARE
-        currId int = 0;
+        currId integer = 0;
         row RECORD;
 BEGIN
             SELECT MAX(ид) + 1 INTO currId FROM Залы;
@@ -93,10 +93,10 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_фильмы(число int)
+CREATE OR REPLACE FUNCTION сгенерировать_фильмы(число integer)
 RETURNS VOID AS $$
 DECLARE
-        currId int = 0;
+        currId integer = 0;
         row RECORD;
         start_scene timestamp;
         end_scene timestamp;
@@ -122,7 +122,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_пользователей(число_пользователей int)
+CREATE OR REPLACE FUNCTION сгенерировать_пользователей(число_пользователей integer)
 RETURNS VOID AS $$
 BEGIN
         FOR i IN 1 .. число_пользователей LOOP
@@ -132,7 +132,7 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_сеансы(число_сеансов_фильма int)
+CREATE OR REPLACE FUNCTION сгенерировать_сеансы(число_сеансов_фильма integer)
 RETURNS VOID AS $$
 DECLARE
         film RECORD;
@@ -171,11 +171,11 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
-CREATE OR REPLACE FUNCTION сгенерировать_места(число_мест int)
+CREATE OR REPLACE FUNCTION сгенерировать_места(число_мест integer)
 RETURNS VOID AS $$
 DECLARE
         cinema_room RECORD;
-        row_c int;
+        row_c integer;
 BEGIN
         FOR cinema_room IN (SELECT ид FROM Залы)
         LOOP
@@ -196,44 +196,172 @@ RETURNS VOID AS $$
 DECLARE
         sess RECORD;
         seat RECORD;
-        checker integer;
 BEGIN
-        checker = 1;
         FOR sess IN (SELECT ид, ид_зала FROM Сеансы) LOOP
                 FOR seat IN (SELECT ид FROM Места WHERE Места.ид_зала = sess.ид_зала) LOOP
-
-                        IF (checker > 0) THEN
+                        if (random() > 0.8) THEN
                         INSERT INTO Билеты (ид_сеанса, ид_места, стоимость, статус)
                         VALUES (sess.ид, seat.ид, random() * 500 + 100, random() * 2);
                                 END IF;
-                        checker = checker * (-1);
                 END LOOP;
         END LOOP;
 END;
 $$ LANGUAGE plpgsql;
 
-
-CREATE OR REPLACE FUNCTION сгенерировать_базу(COUNT int) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
+CREATE OR REPLACE FUNCTION сгенерировать_жанры()
 RETURNS VOID AS $$
 BEGIN
-        PERFORM сгенерировать_сети(20 * COUNT);
-        PERFORM сгенерировать_кинотеатры(10 * COUNT);
-        PERFORM сгенерировать_залы(5 * COUNT);
-        PERFORM сгенерировать_фильмы(1000 * COUNT);
-        PERFORM сгенерировать_пользователей(1000 * COUNT);
-        PERFORM сгенерировать_оценки(1000 * COUNT); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
-        PERFORM сгенерировать_сеансы(15 * COUNT); -- по 15 сеансов фильмов на зал
+        insert into Жанры(название) values('Космическая опера');
+        insert into Жанры(название) values('Комедия');
+        insert into Жанры(название) values('Боевик');
+        insert into Жанры(название) values('Триллер');
+        insert into Жанры(название) values('Трагедия');
+        insert into Жанры(название) values('Научная фантастика');
+        insert into Жанры(название) values('Ужасы');
+        insert into Жанры(название) values('Мелодрама');
+        insert into Жанры(название) values('Приключения');
+        insert into Жанры(название) values('Фэнтези');
+        insert into Жанры(название) values('Документальное кино');
+        insert into Жанры(название) values('Биография');
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_жанры_к_фильмам()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        genres record;
+BEGIN
+        FOR genres IN (SELECT ид from Жанры)
+        LOOP
+                FOR film IN (SELECT ид from Фильмы)
+                LOOP
+                    if (random() > 0.8) THEN
+                        insert into Фильмы_Жанры 
+                                values(film.ид, genres.ид);
+                    end if;
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_медиа(COUNT integer)
+RETURNS VOID AS $$
+DECLARE
+        film record;
+BEGIN
+        FOR film IN (SELECT ид from Фильмы)
+        LOOP
+            FOR i IN 1..COUNT LOOP
+                insert into Медиа(название, ид_фильма, тип, url) 
+                        values(random_string(20),
+                         film.ид, random_string(5), random_string(30));
+            END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_группы(count int)
+RETURNS VOID AS $$
+BEGIN
+        FOR i in 1 .. count LOOP
+                insert into Группы(название) values(random_string(10));
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_группы_к_фильмам()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        groups record;
+BEGIN
+        FOR groups IN (SELECT ид from Группы)
+        LOOP
+                FOR film IN (SELECT ид from Фильмы)
+                LOOP
+                    if (random() > 0.8) THEN
+                        insert into Фильмы_Группы 
+                                values(film.ид, groups.ид);
+                    end if;
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_людей(count int)
+RETURNS VOID AS $$
+BEGIN
+        FOR i in 1 .. count LOOP
+                insert into Люди(фио)
+                 values (random_string(20));
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_роли()
+RETURNS VOID AS $$
+DECLARE
+        people record;
+        groupp record;
+BEGIN
+        FOR people IN (SELECT ид from Люди)
+        LOOP
+                FOR groupp IN (SELECT ид from Группы)
+                LOOP
+                        If (random() > 0.9) THEN
+                        insert into Роли(название, ид_человека, ид_группы) 
+                                values(random_string(10) , people.ид , groupp.ид);
+                        END If;
+                END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_награды()
+RETURNS VOID AS $$
+DECLARE
+        film record;
+        people record;
+BEGIN
+        FOR film IN (SELECT ид,премьера from Фильмы) LOOP
+            FOR people IN (SELECT ид from Люди) LOOP
+                if ((random() > 0.8) AND Exists(SELECT 1 from Фильмы 
+                    Join Фильмы_Группы 
+                    On Фильмы.ид=Фильмы_Группы.ид_фильма 
+                    Join Роли 
+                    On Фильмы_Группы.ид_группы=Роли.ид_группы
+                    WHERE Роли.ид_человека=people.ид AND Фильмы.ид=film.ид
+                    ) 
+                ) THEN
+                    insert into Награды(ид_фильма,ид_человека,название,тип,дата)
+                        values(film.ид,people.ид,random_string(10),
+                            random_string(5),film.премьера + random_film_interval());
+                END IF;
+            END LOOP;
+        END LOOP;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION сгенерировать_базу(COUNT integer) -- count - это коэффициент масштабирования ( по умолчанию будем запускать с count = 1)
+RETURNS VOID AS $$
+BEGIN
+        PERFORM сгенерировать_сети(5 * COUNT);
+        PERFORM сгенерировать_кинотеатры(20 * COUNT);
+        PERFORM сгенерировать_залы(8 * COUNT);
+        PERFORM сгенерировать_фильмы(200 * COUNT);
+        PERFORM сгенерировать_пользователей(100 * COUNT);
+        PERFORM сгенерировать_оценки(); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
+        PERFORM сгенерировать_сеансы(3 * COUNT); -- по 15 сеансов фильмов на зал
         PERFORM сгенерировать_места(40 * COUNT); -- по 40 мест на каждый зал
         PERFORM сгенерировать_билеты(); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
---         PERFORM сген-- ерировать_сети(10 * COUNT);
---         PERFORM сгенерировать_кинотеатры(10 * COUNT);
---         PERFORM сгенерировать_залы(5 * COUNT);
---         PERFORM сгенерировать_фильмы(10 * COUNT);
---         PERFORM сгенерировать_пользователей(10 * COUNT);
---         PERFORM сгенерировать_оценки(); -- по ~2000 оценок на фильм - рандомно раскидать по разным пользователям
---         PERFORM сгенерировать_сеансы(10 * COUNT); -- по 15 сеансов фильмов на зал
---         PERFORM сгенерировать_места(10 * COUNT); -- по 60 мест на каждый зал
---         PERFORM сгенерировать_билеты(); -- абсолютно рандомно сгенерить билеты по 15 на сеанс
-
+        PERFORM сгенерировать_жанры();
+        PERFORM сгенерировать_жанры_к_фильмам();
+        PERFORM сгенерировать_медиа(10*COUNT);
+        PERFORM сгенерировать_группы(500*COUNT);
+        PERFORM сгенерировать_людей(1000*COUNT);
+        PERFORM сгенерировать_группы_к_фильмам();
+        PERFORM сгенировать_роли();
+        PERFORM сгенерировать_награды();
 END;
 $$ LANGUAGE plpgsql;
